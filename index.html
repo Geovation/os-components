@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+
+  <head>
+
+    <title>Ordnance Survey Polymer Components</title>
+
+    <style>
+      html, body {
+        width: 100%;
+        height: 100%;
+        padding: 0px;
+        margin: 0px;
+      }
+      os-map {
+        width: 49.5%;
+        height: 100%;
+        padding: 0px;
+        margin: 0px;
+        display: inline-block;
+      }
+    </style>
+
+    <script src="bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+
+    <!-- Geodesy dependency for handeling OS grid coordinates -->
+    <script src="bower_components/geodesy/vector3d.js"></script>
+    <script src="bower_components/geodesy/latlon-ellipsoidal.js"></script>
+    <script src="bower_components/geodesy/osgridref.js"></script>
+    <script src="bower_components/geodesy/dms.js"></script>
+
+    <!-- Leaflet, our map framework of choice -->
+    <link rel="stylesheet" href="bower_components/leaflet/dist/leaflet.css">
+    <script src="bower_components/leaflet/dist/leaflet.js"></script>
+
+    <link rel="import" href="os-components/os-map.html">
+
+  </head>
+
+  <body>
+
+      <os-map basemap="road" crs="wgs84" zoom="7"></os-map>
+      <os-map basemap="night" crs="bng" center="651409,313177" zoom="10"></os-map>
+
+  </body>
+
+</html>
