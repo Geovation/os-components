@@ -31,122 +31,180 @@
 
   <script src="apikey.js"></script> <!-- Your API key for OS services -->
   <script>
+
       var instances = [];
 
       Polymer({
-          is : 'os-map',
-          properties : {
-            mapId : String,
-            zoom : {
-              value: 7,
-              type: Number,
-              notify: true,
-              reflectToAttribute: true,
-              observer: 'zoomChange'
-            },
-            center : {
-              type : String,
-              value : "53.8,-1.5",
-              notify: true,
-              reflectToAttribute: true,
-              observer: 'centerChange'
-            },
-            crs : {
-              type: String,
-              value: "wgs84",
-              notify: true,
-              reflectToAttribute: true
-            },
-            basemap : {
-              type: String,
-              notify: true,
-              reflectToAttribute: true,
-              observer: 'basemapChange'
-            }
+
+        is: 'os-map',
+        properties: {
+          mapId: String,
+          zoom: {
+            value: 7,
+            type: Number,
+            notify: true,
+            reflectToAttribute: true,
+            observer: 'zoomChange'
           },
-          attached: function() {
+          center: {
+            type: String,
+            value: "53.8,-1.5",
+            notify: true,
+            reflectToAttribute: true,
+            observer: 'centerChange'
+          },
+          crs: {
+            type: String,
+            value: "wgs84",
+            notify: true,
+            reflectToAttribute: true
+          },
+          basemap: {
+            type: String,
+            notify: true,
+            reflectToAttribute: true,
+            observer: 'basemapChange'
+          }
+        },
+        attached: function() {
 
-            console.log("Initialising map...")
-            var component = this;
-            instances.push(this);
-            this.mapId = "os-map-" + instances.length;
+          console.log("Initialising map...")
+          var component = this;
+          instances.push(this);
+          this.mapId = "os-map-" + instances.length;
 
-            this.os = {
-              'road'    : 'https://api2.ordnancesurvey.co.uk/mapping_api/v1/service/zxy/EPSG%3A3857/Road 3857/{z}/{x}/{y}.png?key=',
-              'outdoor' : 'https://api2.ordnancesurvey.co.uk/mapping_api/v1/service/zxy/EPSG%3A3857/Outdoor 3857/{z}/{x}/{y}.png?key=',
-              'light'   : 'https://api2.ordnancesurvey.co.uk/mapping_api/v1/service/zxy/EPSG%3A3857/Light 3857/{z}/{x}/{y}.png?key=',
-              'night'   : 'https://api2.ordnancesurvey.co.uk/mapping_api/v1/service/zxy/EPSG%3A3857/Night 3857/{z}/{x}/{y}.png?key=',
-              'attrib'  : '&copy; <a href="https://www.os.uk/copyright">Ordnance Survey</a>',
-              'key'     :  osApiKey
+          this.os = {
+            'road': 'https://api2.ordnancesurvey.co.uk/mapping_api/v1/service/zxy/EPSG%3A3857/Road 3857/{z}/{x}/{y}.png?key=',
+            'outdoor': 'https://api2.ordnancesurvey.co.uk/mapping_api/v1/service/zxy/EPSG%3A3857/Outdoor 3857/{z}/{x}/{y}.png?key=',
+            'light': 'https://api2.ordnancesurvey.co.uk/mapping_api/v1/service/zxy/EPSG%3A3857/Light 3857/{z}/{x}/{y}.png?key=',
+            'night': 'https://api2.ordnancesurvey.co.uk/mapping_api/v1/service/zxy/EPSG%3A3857/Night 3857/{z}/{x}/{y}.png?key=',
+            'attrib': '&copy; <a href="https://www.os.uk/copyright">Ordnance Survey</a>',
+            'key': osApiKey
+          }
+
+          this.minZoom = 7; // Minimum zoom level for the map
+          this.map = L.map(this.mapId, {
+            minZoom: this.minZoom
+          });
+          this.setView(this.center);
+
+          this.basemapLayer = L.tileLayer(this.os[this.basemap] + this.os.key, {
+            attribution: this.os.attrib
+          }).addTo(this.map);
+
+          // Event Listenrs
+
+          this.map.on("zoomend", function(event) {
+            component.zoom = component.map.getZoom(); // Update the zoom attribute to reflect the maps zoom
+          });
+          this.map.on("dragend", function(event) {
+            var center;
+            var dragCenter = component.map.getCenter();
+
+            if (component.crs === "bng") {
+              center = component.latLngToOsGrid([dragCenter.lat, dragCenter.lng]);
+              component.center = center[0] + "," + center[1];
+            } else if (component.crs === "wgs84") {
+              component.center = dragCenter.lat + "," + dragCenter.lng;
             }
 
-            console.log(this.center);
+          });
 
-            this.minZoom = 7; // Minimum zoom level for the map
-            this.map = L.map(this.mapId, {minZoom: this.minZoom});
-            this.setView(this.center);
+        },
+        detached: function() {
 
-            this.basemapLayer = L.tileLayer(this.os[this.basemap] + this.os.key, {
+          instances = instances.filter(function(instance) {
+            return instance !== this;
+          }.bind(this));
+
+        },
+
+        basemapChange: function(newBasemap, oldBasemap) {
+
+          if (oldBasemap && newBasemap && newBasemap !== oldBasemap) {
+
+            var basemaps = ["road", "outdoor", "light", "night"];
+            if (basemaps.indexOf(newBasemap) === -1) {
+              newBasemap = "road";
+              this.basemap = "road";
+            }
+
+            this.map.removeLayer(this.basemapLayer);
+            this.basemapLayer = L.tileLayer(this.os[newBasemap] + this.os.key, {
               attribution: this.os.attrib
             }).addTo(this.map);
 
-            // Event Listenrs
+          }
 
-            this.map.on("zoomend", function(event) {
+        },
 
-                component.zoom = component.map.getZoom(); // Update the zoom attribute to reflect the maps zoom
+        zoomChange: function(newZoom, oldZoom) {
 
-            })
+          if (oldZoom && newZoom && newZoom !== oldZoom && newZoom > this.minZoom) {
+            this.map.setZoom(newZoom);
+          } else if (newZoom < this.minZoom) {
+            this.zoom = this.minZoom; // Prevent zoom going below 6 as this puts the map to grey
+          }
 
-          },
-          detached: function(){
+        },
 
-              instances = instances.filter(function(instance){
-                  return instance !== this;
-              }.bind(this));
+        centerChange: function(newCenter, oldCenter) {
 
-          },
-          basemapChange : function(newBasemap, oldBasemap) {
+          if (oldCenter && newCenter && newCenter !== oldCenter) {
+            this.setView(newCenter);
+          }
 
-            if (oldBasemap && newBasemap && newBasemap !== oldBasemap) {
-              this.map.removeLayer( this.basemapLayer );
-              this.basemapLayer = L.tileLayer(this.os[newBasemap] + this.os.key, {
-                attribution: this.os.attrib
-              }).addTo(this.map);
-            }
+        },
 
-          },
-          zoomChange : function(newZoom, oldZoom) {
+        setView: function(center) {
 
-            if (oldZoom && newZoom && newZoom !== oldZoom && newZoom > this.minZoom) {
-              this.map.setZoom(newZoom);
-            } else if (newZoom < this.minZoom) {
-              this.zoom = this.minZoom; // Prevent zoom going below 6 as this puts the map to grey
-            }
+          var latLng = this.checkCrs(center);
+          this.map.setView(latLng, this.zoom);
 
-          },
-          centerChange : function(newCenter, oldCenter) {
+        },
 
-           if (oldCenter && newCenter && newCenter !== oldCenter) {
-             setView(newCenter);
-           }
+        checkCrs: function(center) {
 
-         },
-         setView : function(center) {
+          center = this.handleCoords(center);
 
-           var lat = center.split(",")[0].trim();
-           var lng = center.split(",")[1].trim();
-           if (this.crs === "bng") {
-             var xy = new OsGridRef(lat, lng); // Use the Geodesy library
-             latLng = OsGridRef.osGridToLatLon(xy); // Convert Os Grid reference to WGS84
+          if (this.crs === "bng") {
+            var xy = new OsGridRef(center[0], center[1]); // Use the Geodesy library
+            latLng = OsGridRef.osGridToLatLon(xy); // Convert Os Grid reference to WGS84
+            center[0] = latLng.lat;
+            center[1] = latLng.lon;
+          }
 
-             this.map.setView([latLng.lat, latLng.lon], this.zoom);
-           }
-           else if (this.crs === "wgs84") {
-             this.map.setView([lat, lng], this.zoom);
-           }
-         }
-      });
+          return center;
+
+        },
+
+        handleCoords: function(center) {
+
+          var lat, lng;
+          if (center instanceof Array) {
+            lat = center[0];
+            lng = center[1];
+          } else if (typeof center === 'string') {
+            lat = center.split(",")[0].trim();
+            lng = center.split(",")[1].trim();
+          }
+
+          return [lat, lng];
+
+        },
+
+        latLngToOsGrid: function(center) {
+
+          center = this.handleCoords(center);
+          //console.log(center);
+          var p = new LatLon(center[0], center[1]).convertDatum(LatLon.datum.OSGB36);
+          var grid = OsGridRef.latLonToOsGrid(p); // grid.toString(): TG 51409 13177
+          //console.log(grid)
+          return [grid.easting, grid.northing]
+
+        }
+
+    });
 
   </script>
 
