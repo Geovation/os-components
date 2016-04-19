@@ -10,6 +10,8 @@
         display: inline-block;
       }
       .os-maps {
+        position: relative;
+        top: 0;
         width: 100%;
         height: 100%;
         padding: 0px;
@@ -18,6 +20,8 @@
     </style>
 
     <!-- local DOM goes here -->
+
+    <content></content>
     <div
           id="{{mapId}}"
           class="os-maps"
@@ -93,6 +97,9 @@
           }).addTo(this.map);
 
           // Event Listenrs
+          //
+
+          this.addEventListener('addMarker', this.addMarker);
 
           this.map.on("zoomend", function(event) {
             component.zoom = component.map.getZoom(); // Update the zoom attribute to reflect the maps zoom
@@ -201,6 +208,17 @@
           var grid = OsGridRef.latLonToOsGrid(p); // grid.toString(): TG 51409 13177
           //console.log(grid)
           return [grid.easting, grid.northing]
+
+        },
+
+        addMarker : function(event) {
+          //console.log(event);
+          var coords = event.detail;
+          console.log(event.detail)
+          L.marker([coords.lat, coords.lng])
+            .bindPopup("<b>Search Location</b><br> " + coords.input)
+            .openPopup()
+            .addTo(this.map);
 
         }
 
