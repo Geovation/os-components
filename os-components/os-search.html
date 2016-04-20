@@ -43,7 +43,7 @@
     <!-- local DOM goes here -->
     <div class="os-search">
 
-      <input placeholder="Search for a location..." class="os-search-input" id="search"></input>
+      <input placeholder="Search for a location..." on-keypress="handleKeyPressed" class="os-search-input" id="search"></input>
 
     </div>
     <button class="os-go-button"  on-click="handleGoClick">Go!</button>
@@ -127,6 +127,12 @@
 
           return this.request(url);
 
+      },
+
+      handleKeyPressed: function(e) {
+          if ( 13 === e.charCode ) {
+              this.handleGoClick();
+          }
       },
 
       handleGoClick: function() {

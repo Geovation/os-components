@@ -96,6 +96,9 @@
             attribution: this.os.attrib
           }).addTo(this.map);
 
+          this.markerLayer = L.layerGroup().addTo(this.map);
+
+
           // Event Listenrs
           //
 
@@ -212,14 +215,19 @@
         },
 
         addMarker : function(event) {
-          //console.log(event);
+
           var coords = event.detail;
-          console.log(event.detail)
+          this.clearMarkers();
+          //console.log(event.detail)
           L.marker([coords.lat, coords.lng])
             .bindPopup("<b>Search Location</b><br> " + coords.input)
             .openPopup()
-            .addTo(this.map);
+            .addTo(this.markerLayer);
 
+        },
+
+        clearMarkers : function() {
+          this.markerLayer.clearLayers();
         }
 
     });
