@@ -19,6 +19,10 @@
         margin: 0px;
         display: inline-block;
       }
+      os-search {
+        left: 50px;
+        top: 10px;
+      }
     </style>
 
     <script src="bower_components/webcomponentsjs/webcomponents-lite.js"></script>
@@ -33,13 +37,17 @@
     <link rel="stylesheet" href="bower_components/leaflet/dist/leaflet.css">
     <script src="bower_components/leaflet/dist/leaflet.js"></script>
 
+    <!-- Our components -->
     <link rel="import" href="os-components/os-map.html">
+    <link rel="import" href="os-components/os-search.html">
 
   </head>
 
   <body>
 
-      <os-map basemap="road" crs="wgs84" zoom="7"></os-map>
+      <os-map basemap="road" crs="wgs84" zoom="7">
+        <os-search mode="places"></os-search>
+      </os-map>
       <os-map basemap="night" crs="bng" center="651409,313177" zoom="10"></os-map>
 
   </body>

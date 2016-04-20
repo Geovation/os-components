@@ -1,0 +1,177 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<dom-module id="os-search">
+
+  <template>
+
+    <style>
+      /* local styles go here */
+
+      :host, .os-search {
+        width: 200px;
+        height: 40px;
+        font-size: 16px;
+        padding: 0px;
+        margin: 0px;
+        box-shadow: 0 1px 1px rgba(0,0,0,0.2);
+        border-radius: 4px;
+        text-indent: 10px;
+        border-width: 3px;
+        border: black;
+        background-color: white;
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 2;
+      }
+
+      .os-go-button {
+        left:  200px;
+        width: 50px;
+        text-indent: 0px;
+        cursor: pointer;
+      }
+      .os-go-button:focus, .os-search:focus {
+        outline: none;
+      }
+      .os-go-button:hover {
+        background-color: rgba(255,213,255,0.9)
+      }
+
+    </style>
+
+    <!-- local DOM goes here -->
+    <div class="os-search">
+
+      <input placeholder="Search for a location..." class="os-search-input" id="search"></input>
+
+    </div>
+    <button class="os-go-button"  on-click="handleGoClick">Go!</button>
+
+  </template>
+
+  <script src="apikey.js"></script> <!-- Your API key for OS services -->
+  <script>
+
+      var instances = [];
+
+      Polymer({
+
+        is: 'os-search',
+        properties: {
+          mode: {
+            value: "places",
+            type: String,
+            notify: true,
+            reflectToAttribute: true,
+            observer: 'modeChange'
+          },
+        },
+        attached: function() {
+
+          console.log("Initialising search...")
+
+          this.PROXY_URL    = "";
+          this.format       = "&format=json";
+          this.placesUrl    = "https://api.ordnancesurvey.co.uk/places/v1/addresses";
+          this.openNamesUrl = "https://api.ordnancesurvey.co.uk/opennames/v1/";
+
+        },
+
+        request: function (url) {
+
+          return new Promise(function(resolve, reject) {
+              var req = new XMLHttpRequest();
+              if ("withCredentials" in req) {
+                  // Check if the XMLHttpRequest object has a "withCredentials" property.
+                  // "withCredentials" only exists on XMLHTTPRequest2 objects.
+              } else if (typeof XDomainRequest != "undefined") {
+                  // Otherwise, check if XDomainRequest.
+                  // XDomainRequest only exists in IE, and is IE's way of making CORS requests.
+                  req = new XDomainRequest();
+              }
+              else {
+                  reject(Error('CORS not supported'));
+              }
+
+              req.open("GET", url, true);
+              req.onload = function() {
+                  if (req.status == 200) {
+                    // Resolve the promise with the response text
+                    resolve(JSON.parse(req.response));
+                  }
+                  else {
+                    reject(Error(req.statusText));
+                  }
+              };
+
+              // Handle network errors
+              req.onerror = function() {
+                  reject(Error("Network Error"));
+              };
+
+              // Make the request
+              req.send();
+          });
+
+      },
+
+      geocode: function(query, mode) {
+
+          if (mode === "names") {
+            var url = this.PROXY_URL + this.openNamesUrl + "/find?query="+query+",&maxresults=1" + this.format + "&key=" + osApiKey;
+          }
+          else if (mode === "places") {
+            var url = this.PROXY_URL + this.placesUrl + "/find?query="+query+",&maxresults=1" + this.format + "&key=" + osApiKey;
+          }
+
+          return this.request(url);
+
+      },
+
+      handleGoClick: function() {
+
+        var input = this.$.search.value;
+        var mode = this.mode;
+
+        var response = this.geocode(input, mode);
+        var component = this;
+        response.then(function(json){
+
+          var names = "GAZETTEER_ENTRY";
+          var places = "DPA"
+          if (mode === "names") {
+            var result = json["results"][0][names]
+            var xy = new OsGridRef(result["GEOMETRY_X"], result["GEOMETRY_Y"]);
+
+          }
+          else if (mode === "places") {
+            var result = json["results"][0][places]
+            var xy = new OsGridRef(result["X_COORDINATE"], result["Y_COORDINATE"]); // Use the Geodesy library
+          }
+
+          latLng = OsGridRef.osGridToLatLon(xy); // Convert Os Grid reference to WGS84
+          lat = latLng.lat;
+          lng = latLng.lon;
+
+          component.fire("addMarker",
+            { lat: lat, lng: lng, input: input }
+          );
+
+        })
+
+      },
+
+      modeChange : function(newMode, oldMode) {
+
+        // Protect against bad inputs
+        if (newMode != "names" || newMode != "places") {
+          this.mode = "places";
+        }
+      }
+
+    });
+
+  </script>
+
+</dom-module>
