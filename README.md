@@ -1,6 +1,6 @@
 # OS Components
 
-A map component built with Polymer for Ordnance Survey maps.
+A example map component and a geocoder component built with Polymer for Ordnance Survey APIs.
 
 ## Install
 
