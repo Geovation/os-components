@@ -2,6 +2,13 @@
 
 A example map component and a geocoder component built with Polymer for Ordnance Survey APIs.
 
+## Dependencies Used
+
+* Leaflet - Underpinning mapping framework
+* Polymer - Web Components library
+* Geodesy - Library for transforming coordinates between WGS84 and BNG and vice versa
+* webcomponents.js - Web components polyfill for non compliant browsers
+
 ## Screenshot
 
 ![Screenshot OS Components](https://raw.githubusercontent.com/Geovation/os-components/master/os-components-screenshot.png)
