@@ -8,9 +8,13 @@ A map component built with Polymer for Ordnance Survey maps.
 
 ## Demo
 
-You can use :
+Get your Ordnance Survey API key, and create a file called apikey.js which resides in the os-components folder. In the file place:
+
+    var osApiKey = "YOUR_API_KEY_HERE12345"; // Change with your API Key
+
+Then you can use :
 
     npm install -g live-server
     live-server
 
-From the folder to view the demo. Alternatively copy the files to your web server of choice.
+From the folder to serve the demo. Alternatively copy the files to your web server of choice.
