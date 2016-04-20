@@ -2,6 +2,10 @@
 
 A example map component and a geocoder component built with Polymer for Ordnance Survey APIs.
 
+## Screenshot
+
+![Screenshot OS Components](https://raw.githubusercontent.com/Geovation/os-components/master/os-components-screenshot.png)
+
 ## Install
 
     bower install
