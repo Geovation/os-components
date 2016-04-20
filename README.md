@@ -2,6 +2,16 @@
 
 A example map component and a geocoder component built with Polymer for Ordnance Survey APIs.
 
+## Usage
+
+Web components allow you to quickly add reusable elements to your page just like native HTML elements (div, span, p etc). Here we can quickly add a OS Map to our page using the following HTML (dependency imports assumed in the head):
+
+    <body>
+        <os-map basemap="road" crs="wgs84" zoom="7"><os-map>
+    </body>
+
+See the Demo subheading below for more information on seeing a live demo.
+
 ## Dependencies Used
 
 * Leaflet - Underpinning mapping framework
